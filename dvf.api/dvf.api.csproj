@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.11" />
+    <PackageReference Include="Serilog" Version="4.4.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+  </ItemGroup>
+
+  <!-- Copy the DVF zip files next to the binary so the build output is self-contained
+       (the importer finds them at startup). Intentionally "None", not "Content":
+       Content items are exposed through the static web assets system (served over
+       HTTP); the zips must stay on disk only, never served. -->
+  <ItemGroup>
+    <None Update="mutations-zips/**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

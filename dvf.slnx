@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="dvf.api/dvf.api.csproj" />
+  <Project Path="dvf.tests/dvf.tests.csproj" />
+</Solution>

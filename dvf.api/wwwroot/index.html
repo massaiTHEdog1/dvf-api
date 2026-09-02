@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DVF API — Données de valeurs foncières</title>
+  <meta name="description" content="API de consultation des Données de valeurs foncières (DVF) : environ 20,4 millions de transactions immobilières enregistrées en France entre 2021 et 2025, issues du jeu de données officiel publié par l'État sur data.gouv.fr.">
+  <style>
+    :root {
+      --bg: #f7f8fa;
+      --card: #ffffff;
+      --text: #1c2330;
+      --muted: #5b6575;
+      --accent: #1a56db;
+      --accent-dark: #14429c;
+      --border: #e3e7ee;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .container { max-width: 56rem; margin: 0 auto; padding: 0 1.25rem; }
+    header.site {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .nav { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem 1.5rem; padding: 0.75rem 1.25rem; flex-wrap: wrap; }
+    .brand { font-weight: 700; font-size: 1.15rem; color: var(--text); text-decoration: none; }
+    .brand span { color: var(--accent); }
+    nav a { color: var(--muted); text-decoration: none; margin-left: 1.1rem; font-size: 0.95rem; }
+    nav a:hover { color: var(--accent); }
+    a.gh svg { vertical-align: -0.2em; margin-right: 0.4em; }
+    main { padding: 2rem 0 1rem; }
+    section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem 2rem; margin-bottom: 1.5rem; }
+    h1 { font-size: 1.9rem; margin: 0.25rem 0 0.75rem; line-height: 1.25; }
+    h2 { font-size: 1.35rem; margin: 0 0 1rem; }
+    h3 { font-size: 1.05rem; margin: 1.5rem 0 0.5rem; }
+    p { margin: 0.5rem 0; }
+    .lede { font-size: 1.1rem; color: var(--muted); margin: 0; }
+    .hero { background: linear-gradient(135deg, #101a33 0%, #17306b 100%); color: #eef2fb; border: none; }
+    .hero h1 { color: #fff; }
+    .hero .lede { color: #c3cfe8; }
+    .stats { display: flex; gap: 2.25rem; flex-wrap: wrap; margin: 1.5rem 0; }
+    .stats div { display: flex; flex-direction: column; }
+    .stats strong { font-size: 1.5rem; line-height: 1.2; }
+    .stats span { color: #9fb0d4; font-size: 0.9rem; }
+    .actions { margin-top: 1.5rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .btn { display: inline-block; background: var(--accent); color: #fff; text-decoration: none; padding: 0.5rem 1.1rem; border-radius: 8px; font-weight: 600; font-size: 0.95rem; }
+    .btn:hover { background: var(--accent-dark); }
+    .btn.secondary { background: rgba(255, 255, 255, 0.15); }
+    .btn.secondary:hover { background: rgba(255, 255, 255, 0.28); }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    code { background: #eef1f6; padding: 0.1rem 0.35rem; border-radius: 5px; font-size: 0.9em; }
+    pre { background: var(--code-bg); color: var(--code-text); padding: 1rem 1.25rem; border-radius: 10px; overflow-x: auto; font-size: 0.85rem; line-height: 1.55; }
+    pre code { background: none; padding: 0; color: inherit; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.95rem; }
+    th, td { text-align: left; padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { background: #f1f4f9; }
+    .ok { color: #157347; font-weight: 700; }
+    .no { color: #b3261e; font-weight: 700; }
+    .note { background: #f1f6ff; border: 1px solid #d4e1fb; border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.95rem; }
+    .muted { color: var(--muted); }
+    ul { padding-left: 1.3rem; }
+    li { margin: 0.3rem 0; }
+    .legal h3:first-of-type { margin-top: 1rem; }
+    footer.site { padding: 1.5rem 0 2.5rem; text-align: center; color: var(--muted); font-size: 0.9rem; }
+    footer.site a { color: var(--accent); }
+    @media (max-width: 640px) {
+      section { padding: 1.25rem 1.1rem; }
+      nav a { margin-left: 0; margin-right: 1rem; }
+      .stats { gap: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site">
+  <div class="nav">
+    <a class="brand" href="#">DVF&nbsp;<span>API</span></a>
+    <nav>
+      <a href="#presentation">Présentation</a>
+      <a href="#api">API</a>
+      <a href="#donnees">Données</a>
+      <a href="#licence">Licence</a>
+      <a href="#mentions-legales">Mentions légales</a>
+      <a class="gh" href="https://github.com/massaiTHEdog1/dvf-api" rel="noopener"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>Code source</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+
+  <section class="hero">
+    <h1>L'API des Données de valeurs foncières</h1>
+    <p class="lede">
+      Consultez près de 20&nbsp;millions de transactions immobilières enregistrées en France entre
+      2021 et 2025&nbsp;: prix, date, localisation et caractéristiques de chaque bien, issus du
+      jeu de données officiel publié par l'État sur data.gouv.fr.
+    </p>
+    <div class="stats">
+      <div><strong>≈ 20,4&nbsp;M</strong><span>de transactions</span></div>
+      <div><strong>2021 – 2025</strong><span>années couvertes</span></div>
+      <div><strong>43</strong><span>champs par transaction</span></div>
+    </div>
+    <div class="actions">
+      <a class="btn" href="#api">Consulter l'API</a>
+      <a class="btn secondary" href="/api/swagger">Documentation interactive (Swagger)</a>
+    </div>
+  </section>
+
+  <section id="presentation">
+    <h2>Présentation</h2>
+    <p>
+      Les <strong>Données de valeurs foncières (DVF)</strong> sont publiées chaque année par
+      l'administration fiscale française. Chaque ligne correspond à un bien immobilier ayant fait
+      l'objet d'une mutation (vente, donation, échange…), telle qu'enregistrée par la Direction
+      générale des finances publiques (DGFiP).
+    </p>
+    <p>
+      Pour chaque transaction, l'API restitue l'ensemble des 43 champs du jeu de données officiel,
+      notamment&nbsp;:
+    </p>
+    <ul>
+      <li>la <strong>date</strong> et la <strong>nature</strong> de la mutation&nbsp;;</li>
+      <li>la <strong>valeur foncière</strong> (valeur vénale supposée au jour de la mutation)&nbsp;;</li>
+      <li>la <strong>localisation</strong> précise&nbsp;: commune, code postal, département, voie, section cadastrale, lots&nbsp;;</li>
+      <li>les <strong>caractéristiques du bien</strong>&nbsp;: type de local (maison, appartement, terrain…), nombre de pièces principales, surface réelle bâtie, surfaces Carrez, surface du terrain.</li>
+    </ul>
+    <div class="note">
+      <strong>Bon à savoir&nbsp;:</strong> les données sont fournies à des fins de recherche et de
+      statistiques. Les valeurs indiquées sont des valeurs supposées&nbsp;: elles ne constituent pas
+      une évaluation officielle d'un bien précis et peuvent différer du prix réellement payé
+      (transactions entre proches, biens atypiques, etc.).
+    </div>
+  </section>
+
+  <section id="api">
+    <h2>API</h2>
+    <p>
+      L'API est une API REST simple, sans authentification. Tous les paramètres sont vérifiés&nbsp;:
+      toute requête invalide renvoie l'état <code>400</code> avec un message
+      <code>{"error": "..."}</code>.
+    </p>
+
+    <h3>Routes</h3>
+    <table>
+      <thead>
+        <tr><th>Route</th><th>Méthode</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>/api/mutations</code></td>
+          <td><code>POST</code></td>
+          <td>Interroge les transactions&nbsp;: filtres optionnels (combinaison&nbsp;ET) et pagination obligatoire.</td>
+        </tr>
+        <tr>
+          <td><code>/api/swagger</code></td>
+          <td><code>GET</code></td>
+          <td>Documentation interactive (Swagger&nbsp;UI).</td>
+        </tr>
+        <tr>
+          <td><code>/openapi/v1.json</code></td>
+          <td><code>GET</code></td>
+          <td>Spécification OpenAPI&nbsp;3.1.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Requête — <code>POST /api/mutations</code></h3>
+    <p>
+      Le corps JSON contient une liste <code>filters</code> facultative (chaque filtre est composé
+      d'un <code>field</code>, d'un <code>operator</code> et d'un <code>operand</code>&nbsp;; les
+      filtres sont combinés par&nbsp;ET) et une pagination <strong>obligatoire</strong>&nbsp;:
+      <code>skip</code> (nombre de lignes à ignorer, ≥&nbsp;0) et <code>take</code> (nombre de
+      lignes à renvoyer, entre&nbsp;1 et&nbsp;1000).
+    </p>
+    <pre><code>curl -s https://dvf-api.fr/api/mutations \
+  -H "Content-Type: application/json" \
+  -d '{
+    "filters": [
+      { "field": "Code postal",     "operator": "EQUALS",              "operand": 75001 },
+      { "field": "Valeur fonciere", "operator": "GREATER_THAN",        "operand": 1000000 },
+      { "field": "Date mutation",   "operator": "GREATER_THAN_OR_EQUALS", "operand": "2024-01-01" }
+    ],
+    "skip": 0,
+    "take": 10
+  }'</code></pre>
+
+    <h3>Réponse</h3>
+    <pre><code>{
+  "rows": [
+    {
+      "Identifiant de document": "1001234",
+      "Date mutation": "15/03/2024",
+      "Nature mutation": "Vente",
+      "Valeur fonciere": 1234000,
+      "Code postal": 75001,
+      "Commune": "Paris",
+      "Type local": "Maison",
+      "Nombre pieces principales": 5,
+      "…": "… (43 champs au total par ligne)"
+    }
+  ],
+  "pagination": {
+    "totalRows": 4274,
+    "page": 1,
+    "pageSize": 1000,
+    "totalPages": 5
+  }
+}</code></pre>
+    <p>
+      Le bloc <code>pagination</code> porte le nombre total de lignes correspondant aux filtres
+      (<code>totalRows</code>), la page courante (<code>page</code>, à partir de&nbsp;1), la taille
+      de la page (<code>pageSize</code>) et le nombre total de pages (<code>totalPages</code>).
+    </p>
+
+    <h3>Opérateurs</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Opérateur</th>
+          <th>Colonnes numériques<br>(entier, décimal)</th>
+          <th>Colonne date<br><code>Date mutation</code></th>
+          <th>Colonnes texte</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>EQUALS</code></td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td><code>NOT_EQUALS</code></td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td><code>LIKE</code></td><td class="no">✗</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+        <tr><td><code>GREATER_THAN</code></td><td class="ok">✓</td><td class="ok">✓</td><td class="no">✗</td></tr>
+        <tr><td><code>GREATER_THAN_OR_EQUALS</code></td><td class="ok">✓</td><td class="ok">✓</td><td class="no">✗</td></tr>
+        <tr><td><code>LOWER_THAN</code></td><td class="ok">✓</td><td class="ok">✓</td><td class="no">✗</td></tr>
+        <tr><td><code>LOWER_THAN_OR_EQUALS</code></td><td class="ok">✓</td><td class="ok">✓</td><td class="no">✗</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li>les noms d'opérateurs sont insensibles à la casse&nbsp;;</li>
+      <li>sur la colonne <code>Date mutation</code>, l'opérande est accepté au format
+          <code>JJ/MM/AAAA</code> ou <code>AAAA-MM-JJ</code>&nbsp;; les opérateurs de plage
+          comparent les dates dans l'ordre chronologique&nbsp;;</li>
+      <li>avec <code>LIKE</code>, l'opérande est un motif SQL&nbsp;: les jokers
+          <code>%</code> (zéro, un ou plusieurs caractères) et <code>_</code> (un caractère)
+          sont pris en charge, par exemple <code>"%paris%"</code>.</li>
+    </ul>
+  </section>
+
+  <section id="donnees">
+    <h2>Les données</h2>
+    <p>
+      Source&nbsp;: <em>Données de valeurs foncières</em>, jeu de données publié par l'État
+      français (ministère chargé des comptes publics — Direction générale des finances publiques)
+      sur <a href="https://www.data.gouv.fr/fr/datasets/demandes-de-valeurs-foncieres/" rel="license nofollow">data.gouv.fr</a>.
+    </p>
+    <ul>
+      <li>années couvertes&nbsp;: <strong>2021, 2022, 2023, 2024 et 2025</strong>
+          (≈&nbsp;20&nbsp;382&nbsp;915 transactions)&nbsp;;</li>
+      <li>les données de l'État sont publiées avec un décalage d'environ un an après la fin de
+          l'année considérée&nbsp;;</li>
+      <li>chaque transaction expose les 43 champs du fichier officiel
+          (identifiant, date et nature de la mutation, valeur, localisation cadastrale,
+          caractéristiques du bien…).</li>
+    </ul>
+  </section>
+
+  <section id="licence">
+    <h2>Licence</h2>
+    <h3>Données</h3>
+    <p>
+      Le jeu de données des valeurs foncières est publié sous
+      <strong>Licence Ouverte / Open Licence 2.0 (lov2)</strong>&nbsp;: réutilisation, modification
+      et redistribution libres, y compris à des fins commerciales, sous réserve de la mention de la
+      source.
+    </p>
+    <p>
+      Mention de la source&nbsp;: <em>Données de valeurs foncières © État français (ministère
+      chargé des comptes publics — Direction générale des finances publiques), publiées sur
+      <a href="https://www.data.gouv.fr/fr/datasets/demandes-de-valeurs-foncieres/" rel="license nofollow">data.gouv.fr</a>
+      sous Licence Ouverte 2.0</em>.
+    </p>
+    <p>
+      Texte de la licence&nbsp;:
+      <a href="https://www.etalab.gouv.fr/licence-ouverte-open-licence" rel="license nofollow">
+      etalab.gouv.fr — Licence Ouverte / Open Licence</a>.
+    </p>
+    <h3>Code</h3>
+    <p>
+      Le code source de ce site et de cette API est publié sous licence
+      <strong>MIT</strong>&nbsp;:
+      <a href="https://github.com/massaiTHEdog1/dvf-api" rel="noopener">github.com/massaiTHEdog1/dvf-api</a>.
+    </p>
+  </section>
+
+  <section id="mentions-legales" class="legal">
+    <h2>Mentions légales</h2>
+    <p>
+      Ce site est un <strong>projet personnel</strong>, créé à des fins non commerciales.
+    </p>
+
+    <h3>Hébergement</h3>
+    <ul>
+      <li>
+        Hetzner Online GmbH<br>
+        Im Schierstein 32<br>
+        85609 Aschheim, Allemagne<br>
+        <a href="https://www.hetzner.com" rel="nofollow">www.hetzner.com</a>
+      </li>
+    </ul>
+
+    <h3>Données personnelles</h3>
+    <p>
+      Ce site ne collecte <strong>aucune donnée personnelle</strong>&nbsp;: aucun formulaire,
+      aucun compte, aucun cookie, aucun outil de mesure d'audience ni de suivi. L'API
+      n'enregistre pas les requêtes des visiteurs&nbsp;; les journaux techniques d'infrastructure
+      conservés par l'hébergeur peuvent, le cas échéant, contenir des adresses IP pour une durée
+      limitée.
+    </p>
+
+    <h3>Propriété intellectuelle</h3>
+    <p>
+      Les données mises en ligne sont régies par la <strong>Licence Ouverte 2.0</strong> (voir la
+      section <a href="#licence">Licence</a>)&nbsp;; le code source et la mise en page de ce site
+      sont régis par la licence <strong>MIT</strong>.
+    </p>
+
+    <h3>Responsabilité</h3>
+    <p>
+      Le site et les données sont fournis « en l'état », sans garantie d'aucune sorte, expresse ou
+      implicite. Les données sont d'une nature statistique et ne doivent pas servir à établir une
+      évaluation officielle d'un bien précis ni à prendre des décisions individuelles concernant des
+      personnes physiques.
+    </p>
+
+    <h3>Droit applicable</h3>
+    <p>Le présent site est soumis au droit français.</p>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="container">
+    Données&nbsp;: © État français — Licence Ouverte 2.0 · Source&nbsp;:
+    <a href="https://www.data.gouv.fr/fr/datasets/demandes-de-valeurs-foncieres/" rel="license nofollow">data.gouv.fr</a>
+    · <a class="gh" href="https://github.com/massaiTHEdog1/dvf-api" rel="noopener"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>Code source</a>
+    · <a href="#mentions-legales">Mentions légales</a>
+    · <a href="#licence">Licence</a>
+  </div>
+</footer>
+
+</body>
+</html>
