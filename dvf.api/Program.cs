@@ -23,6 +23,12 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// CORS: allow any origin (any headers/methods), so the API can be called from any frontend.
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy => policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+});
+
 var app = builder.Build();
 
 // Paths of the DVF data folder and of the SQLite database (configured in appsettings.json).
@@ -47,6 +53,7 @@ app.Logger.LogInformation("Database ready at {Path}.", databasePath);
 // duration. The request id comes from the incoming X-Request-Id header when present, otherwise
 // a new GUID is generated; it is returned to the client in the X-Request-Id response header.
 app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseCors();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();
