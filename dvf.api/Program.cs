@@ -12,9 +12,33 @@ var builder = WebApplication.CreateBuilder(args);
 var serilogLogger = SerilogConfiguration.Create(builder.Configuration, builder.Environment);
 builder.Host.UseSerilog(serilogLogger, dispose: true);
 
-builder.Services.AddOpenApi();
+// The app listens on plain HTTP behind a reverse proxy, which terminates TLS and
+// redirects http:// to https://. ASP.NET Core therefore cannot know the external scheme on its
+// own and would advertise the server as http://dvf-api.fr in the OpenAPI document, making
+// Swagger UI call the API over HTTP. The external base URL is configured instead
+// ("OpenApi:ServerUrl" in appsettings.json); it is applied to both the Microsoft OpenAPI
+// generator (served at /openapi/v1.json) and Swagger Gen (used by Swagger UI).
+var openApiServerUrl = builder.Configuration["OpenApi:ServerUrl"];
+if (openApiServerUrl is not null)
+{
+    var server = new OpenApiServer { Url = openApiServerUrl };
+    builder.Services.AddOpenApi(options =>
+        options.AddDocumentTransformer((document, context, cancellationToken) =>
+        {
+            document.Servers = new List<OpenApiServer> { server };
+            return Task.CompletedTask;
+        }));
+}
+else
+{
+    builder.Services.AddOpenApi();
+}
 builder.Services.AddSwaggerGen(options =>
 {
+    if (openApiServerUrl is not null)
+    {
+        options.AddServer(new OpenApiServer { Url = openApiServerUrl });
+    }
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "DVF API",
